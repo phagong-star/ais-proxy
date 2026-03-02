@@ -7,7 +7,9 @@ app.use(cors());
 
 const PORT = process.env.PORT || 10000;
 const API_KEY = "d23b012bd4583641fe017e1434bac9871cc851b3"; 
-const BOUNDING_BOX = [[[0.5, 97.0], [7.0, 105.5]]];
+
+// South East Asia Bounding Box
+const BOUNDING_BOX = [[[-12.0, 92.0], [25.0, 142.0]]];
 
 let ships = {};
 
@@ -15,7 +17,7 @@ function connectAIS() {
     const ws = new WebSocket("wss://stream.aisstream.io/v0/stream");
 
     ws.on('open', () => {
-        console.log("Connected to AISstream.");
+        console.log("Connected to SEA Regional Feed.");
         ws.send(JSON.stringify({
             APIKey: API_KEY,
             BoundingBoxes: BOUNDING_BOX,
@@ -48,10 +50,11 @@ function connectAIS() {
     ws.on('error', () => ws.close());
 }
 
+// Cleanup old ships every minute
 setInterval(() => {
     const now = Date.now();
     for (const mmsi in ships) {
-        if (now - ships[mmsi].lastSeen > 600000) delete ships[mmsi];
+        if (now - ships[mmsi].lastSeen > 300000) delete ships[mmsi];
     }
 }, 60000);
 
@@ -59,4 +62,4 @@ connectAIS();
 
 app.get('/ais/latest', (req, res) => res.json(Object.values(ships)));
 
-app.listen(PORT, () => console.log(`Proxy running on port ${PORT}`));
+app.listen(PORT, () => console.log(`SEA Proxy running on port ${PORT}`));
